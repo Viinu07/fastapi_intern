@@ -1,0 +1,12 @@
+version: "3"
+services:
+  web:
+    image: viinu007/fastapi:none
+    ports:
+      - 3000:3000
+    container_name: my-web-container
+  database:
+    image: mongo
+    ports:
+      - 27017:27017
+    container_name: my-database-container

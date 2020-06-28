@@ -1,0 +1,145 @@
+<html>
+  <head>
+    <title>TODO APP</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+  </head>
+  <body>
+    <script>
+      $(document).ready(function () {
+        var num;
+        var input;
+        $("#add_button").click(function () {
+          $("#add").modal("show");
+        });
+        $("#save_button").click(function () {
+          input = $("#input_save").val();
+          console.log(input);
+          $.ajax({
+            url: "/notes",
+            type: "POST",
+            data: JSON.stringify({ item: input, item_status: false }),
+          }).then(setTimeout(location.reload.bind(location), 200));
+        });
+        $(".mini.ui.primary.button").click(function () {
+          num = this.id;
+          console.log(num);
+          $.ajax({
+            url: "/notes/" + num,
+            type: "GET",
+          }).then(function (c) {
+            $("#edit_text").val(c.item);
+            $("#update").modal("show");
+          });
+        });
+        $("#edit_save_button").click(function () {
+          input = $("#edit_text").val();
+          console.log(input);
+          $.ajax({
+            url: "/notes/" + num,
+            type: "PUT",
+            data: JSON.stringify({ item: input, item_status: false }),
+          }).then(setTimeout(location.reload.bind(location), 200));
+        });
+        $(".mini.ui.green.button").click(function () {
+          num = this.id;
+          input = document.getElementById("saved_text_" + num).innerHTML;
+          console.log(input);
+          $.ajax({
+            url: "/notes/" + num,
+            type: "PUT",
+            data: JSON.stringify({ item: input, item_status: true }),
+          }).then(setTimeout(location.reload.bind(location), 200));
+        });
+        $(".mini.ui.red.button").click(function () {
+          num = this.id;
+          input = document.getElementById("saved_text_" + num).innerHTML;
+          console.log(input);
+          $.ajax({
+            url: "/notes/" + num,
+            type: "DELETE",
+          }).then(setTimeout(location.reload.bind(location), 200));
+        });
+      });
+    </script>
+    <div class="ui raised very padded text container segment">
+      <h1 style="text-align: center;">TODO LIST</h1>
+      <button class="ui primary button" id="add_button">
+        <i class="plus icon"></i>
+        Add
+      </button>
+      <h2 class="ui header">Open Tasks</h2>
+      <hr />
+      <div class="ui middle aligned divided list">
+        {% for note in notes_open%}
+        <div class="item">
+          <div class="right floated content">
+            <button class="mini ui primary button" id="{{note['id']}}">
+              <i class="pencil alternate icon"></i>
+              Edit
+            </button>
+            <button class="mini ui green button" id="{{note['id']}}">
+              <i class="check icon"></i>
+              Complete
+            </button>
+            <button class="mini ui red button" id="{{note['id']}}">
+              <i class="trash icon"></i>
+              Delete
+            </button>
+          </div>
+          <div class="content">
+            <p id="saved_text_{{note['id']}}">{{note['item']}}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <h2 class="ui header">Completed Tasks</h2>
+      <hr />
+      <div class="ui middle aligned animated list">
+        {% for note in notes_completed %}
+        <div class="item">
+          <div class="right floated content">
+            <button class="mini ui red button" id="{{note['id']}}">
+              <i class="trash icon"></i>
+              Delete
+            </button>
+          </div>
+          <div class="content">
+            <p id="saved_text_{{note['id']}}">{{note['item']}}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="ui tiny modal" id="add">
+        <div class="header">New Task</div>
+        <div class="content">
+          <div class="ui fluid icon input">
+            <input type="text" placeholder="New Task....." id="input_save" />
+          </div>
+        </div>
+        <div class="actions">
+          <div class="ui approve button" id="save_button">Save</div>
+        </div>
+      </div>
+      <div class="ui tiny modal" id="update">
+        <div class="header">Update Task</div>
+        <div class="content">
+          <div class="ui fluid icon input">
+            <input type="text" id="edit_text" />
+          </div>
+        </div>
+        <div class="actions">
+          <div class="ui approve button" id="edit_save_button">Save</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
