@@ -5,6 +5,11 @@ This app is built using Fastapi and MongoDB and for ui styling Jinja2 was used w
 Homepage of the App
 ![Screenshot](homepage.png)
 
+Login of the App - fast api auth for one time
+user name - viinu
+password - training
+![Alt Text](home.gif)
+
 Add new Task
 ![Alt Text](add.gif)
 
@@ -19,5 +24,5 @@ Deleting the task
 
 Docker commands
 Docker image was build out of the app and upload to repositroy
-so we can directly use docker-compose up command
+so we can directly docker-compose.yml file and use docker-compose up command to run the app
 ![Screenshot](docker.png)

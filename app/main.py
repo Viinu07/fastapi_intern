@@ -1,5 +1,7 @@
-from fastapi import Depends,FastAPI,Request
+from fastapi import Request,Depends, FastAPI, HTTPException, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import uvicorn
+import secrets
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import motor.motor_asyncio
@@ -11,6 +13,21 @@ class Item(BaseModel):
     item_status: bool
 
 
+security = HTTPBasic()
+
+
+def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(credentials.username, "viinu")
+    correct_password = secrets.compare_digest(credentials.password, "training")
+    if not (correct_username and correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
+
 client = motor.motor_asyncio.AsyncIOMotorClient('mongodb://my-database-container:27017') #update => ('localhost',27017) for testing it locally 
 db = client['Notes']
 collection = db.todo
@@ -20,7 +37,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @app.get("/")
-async def root(request: Request):
+async def root(request: Request,username: str = Depends(get_current_username)):
     notes_open =[]
     notes_completed =[]
     async for doc in collection.find({'item_status': False}):
@@ -31,7 +48,7 @@ async def root(request: Request):
 
 
 @app.post("/notes")
-async def create_item(item: Item):
+async def create_item(item: Item,username: str = Depends(get_current_username)):
     temp = 0;
     latest_id = collection.find({},{"id":1,"_id":0}).sort("id",-1).limit(1)
     for ids in await latest_id.to_list(length=1):
@@ -43,7 +60,7 @@ async def create_item(item: Item):
         }
 
 @app.get("/notes/{id}")
-async def read_item(request: Request,id: int):
+async def read_item(request: Request,id: int,username: str = Depends(get_current_username)):
     value = await collection.find_one({'id':id})
     if value is None:
         return{
@@ -60,7 +77,7 @@ async def read_item(request: Request,id: int):
 
 
 @app.put("/notes/{id}")
-async def update_item(item: Item,id: int):
+async def update_item(item: Item,id: int,username: str = Depends(get_current_username)):
     collection.update_one({'id':id},{'$set' : {'item':item.item,'item_status':item.item_status}})
     return {
         "code":"ok",
@@ -72,7 +89,7 @@ async def update_item(item: Item,id: int):
 
 
 @app.delete("/notes/{id}")
-async def delete_item(id: int):
+async def delete_item(id: int,username: str = Depends(get_current_username)):
     collection.delete_many({'id':id})
     return {
         "code":"ok",
